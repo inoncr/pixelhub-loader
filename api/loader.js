@@ -1,12 +1,12 @@
 
 // /api/loader.js
-// PixelHub Dynamic Loader - Generated 2025-06-21T12:30:56.317Z
+// PixelHub Dynamic Loader - Generated 2025-06-21T13:40:07.781Z
 // Active Pixels: meta:1288677251976913
 
 const PIXEL_CONFIGS = [
   {
-    "id": "68569974984cd01c548f33ae",
-    "name": "הפיקסל של פרי טי וי",
+    "id": "6856af8610b0f6c1ce7a7bbe",
+    "name": "FreeTV pixel",
     "pixel_id": "1288677251976913",
     "pixel_type": "meta",
     "is_active": true,
@@ -25,12 +25,19 @@ const PIXEL_CONFIGS = [
       }
     ],
     "advanced_settings": {
-      "ga4_settings": null,
+      "ga4_settings": {
+        "measurement_id": null,
+        "enhanced_ecommerce": true,
+        "custom_dimensions": []
+      },
       "meta_settings": {
         "test_events": false,
         "advanced_matching": true
       },
-      "google_ads_settings": null
+      "google_ads_settings": {
+        "conversion_label": "",
+        "remarketing": true
+      }
     }
   }
 ];
@@ -46,26 +53,37 @@ export default function handler(request, response) {
       case 'meta':
         return `
           // Meta Pixel: ${pixel.pixel_id} (${pixel.name})
-          console.log('🟢 PixelHub: Injecting Meta Pixel ${pixel.pixel_id}');
+          console.log('🟢 PixelHub: Initializing Meta Pixel ${pixel.pixel_id}');
           
-          !function(f,b,e,v,n,t,s) {
-            if(f.fbq) return; 
-            n=f.fbq=function(){
-              n.callMethod ? n.callMethod.apply(n,arguments) : n.queue.push(arguments)
-            };
-            if(!f._fbq) f._fbq=n; 
-            n.push=n; n.loaded=!0; n.version='2.0';
-            n.queue=[]; 
-            t=b.createElement(e); t.async=!0;
-            t.src=v; 
-            s=b.getElementsByTagName(e)[0];
-            s.parentNode.insertBefore(t,s)
-          }(window, document,'script', 'https://connect.facebook.net/en_US/fbevents.js');
+          // 1. Ensure the fbq function is initialized
+          if (typeof window.fbq !== 'function') {
+            !function(f,b,e,v,n,t,s) {
+              if(f.fbq) return; 
+              n=f.fbq=function(){
+                n.callMethod ? n.callMethod.apply(n,arguments) : n.queue.push(arguments)
+              };
+              if(!f._fbq) f._fbq=n; 
+              n.push=n; n.loaded=!0; n.version='2.0';
+              n.queue=[]; 
+              t=b.createElement(e); t.async=!0;
+              t.src=v; 
+              s=b.getElementsByTagName(e)[0];
+              s.parentNode.insertBefore(t,s)
+            }(window, document,'script', 'https://connect.facebook.net/en_US/fbevents.js');
+            console.log('   - FBQ base script loaded.');
+          } else {
+            console.log('   - FBQ base script already exists.');
+          }
           
-          fbq('init', '${pixel.pixel_id}');
-          fbq('track', 'PageView');
+          // 2. Initialize THIS specific pixel
+          window.fbq('init', '${pixel.pixel_id}');
+          console.log('   - fbq("init", "${pixel.pixel_id}") called.');
+
+          // 3. Track the standard PageView event for this pixel
+          window.fbq('track', 'PageView');
+          console.log('   - fbq("track", "PageView") called.');
           
-          console.log('✅ Meta Pixel ${pixel.pixel_id} initialized');
+          console.log('✅ Meta Pixel ${pixel.pixel_id} initialized successfully.');
         `;
         
       case 'google_analytics':
